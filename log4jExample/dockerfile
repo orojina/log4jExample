@@ -1,0 +1,24 @@
+FROM openjdk:11
+
+RUN apt-get update
+RUN apt-get install -y apache2
+
+COPY index.html /var/www/html/
+
+RUN wget https://dlcdn.apache.org/maven/maven-3/3.8.4/binaries/apache-maven-3.8.4-bin.tar.gz
+RUN gunzip apache-maven-3.8.4-bin.tar.gz
+RUN tar -xvf apache-maven-3.8.4-bin.tar
+
+ENV CLASSPATH=$CLASSPATH:${pwd}/apache-log4j-2.15.0-bin/log4j-core-2.15.0.jar
+ENV CLASSPATH=$CLASSPATH:${pwd}/apache-log4j-2.15.0-bin/log4j-api-2.15.0.jar
+ENV PATH=/apache-log4j-2.15.0-bin:$PATH
+ENV PATH=:/apache-maven-3.8.4/bin:$PATH
+ENV LOG4J_LEVEL=DEBUG
+
+COPY /log4jExample /log4jExample
+COPY /log4jExample/log4j2.properties /apache-log4j-2.15.0-bin
+
+RUN  cd /log4jExample && mvn compile exec:java -Dexec.mainClass="com.log4jExample.log4jExample.Log4jExample"
+
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+EXPOSE 80
